@@ -13,6 +13,14 @@
         </a>
     </li>
 @endcan
+@can('workers')
+    <li class="nav-item">
+        <a href="{{ route('workers.index') }}" class="nav-link">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Manage Workers</p>
+        </a>
+    </li>
+@endcan
 
 
 <li class="nav-header">General Settings</li>

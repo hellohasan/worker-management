@@ -1,16 +1,17 @@
 <?php
 
-use App\Http\Controllers\CategoryController;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\Settings\BasicSettingController;
-use App\Http\Controllers\Settings\ServerInformationController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WorkerController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\Settings\BasicSettingController;
+use App\Http\Controllers\Settings\ServerInformationController;
 
 Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
 
@@ -38,6 +39,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::group(['prefix' => 'backend'], function () {
         Route::resource('categories', CategoryController::class)->except(['show']);
+        Route::resource('workers', WorkerController::class);
     });
 
     Route::resource('users', UserController::class);

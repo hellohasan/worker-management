@@ -4,7 +4,7 @@
     <x-basic-layout :title="$page_title" icon="fas fa-cog">
         <x-form-post :action="route('update-basic-content')">
             <div class="form-row">
-                <x-form-group-input col="col-md-6" name="title" label="Website Title" :value="env('APP_NAME')" />
+                <x-form-group-input col="col-md-6" name="title" label="Website Title" :value="$basic->title" />
                 <div class="form-group col-md-6">
                     <label for="timezone">Web Timezone</label>
                     {!! Timezones::create('timezone', env('APP_TIMEZONE'), ['attr' => ['id' => 'timezone', 'class' => 'form-control select2']]) !!}

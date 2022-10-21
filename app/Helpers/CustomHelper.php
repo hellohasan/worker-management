@@ -29,12 +29,29 @@ class CustomHelper
                     }
                 }
             }
+
             $env = implode("\n", $env);
             file_put_contents($path, $env);
 
             Artisan::call('config:clear');
             Artisan::call('config:cache');
         }
+    }
+
+    /**
+     * @return mixed
+     */
+    public static function getCountryList()
+    {
+        $countries = json_decode(file_get_contents(storage_path('json/country.json')), true);
+        $lists = [];
+        foreach ($countries as $country) {
+            $lists[] = [
+                'id'   => $country['name'],
+                'text' => $country['name'],
+            ];
+        }
+        return $lists;
     }
 
 }

@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Settings;
 
-use App\Http\Controllers\Controller;
+use Config;
 use App\Models\BasicSetting;
 use Illuminate\Http\Request;
+use App\Helpers\CustomHelper;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Redirect;
 use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Redirect;
 
 class BasicSettingController extends Controller
 {
@@ -39,9 +42,17 @@ class BasicSettingController extends Controller
         $basic = BasicSetting::first();
         $data['email_verification'] = $request->input("email_verification") == 'on' ? true : false;
         $basic->update($data);
-        /* CustomHelper::changeEnv([
-        'APP_NAME' => request('title'),
-        ]); */
+
+        Config::set('system.basic', [
+            'currency' => $basic->currency,
+            'symbol'   => $basic->symbol,
+        ]);
+
+        Artisan::call('config:cache');
+
+        CustomHelper::changeEnv([
+            'APP_NAME' => $request->input('title'),
+        ]);
 
         return redirect()->back()->withToastSuccess('Basic Settings Updated.');
     }

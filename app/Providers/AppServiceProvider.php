@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use View;
+use App\Models\BasicSetting;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        //register
     }
 
     /**
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-
+        $basic = BasicSetting::first();
+        View::share('basic', $basic);
     }
 }

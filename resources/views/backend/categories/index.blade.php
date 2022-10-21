@@ -19,7 +19,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">No Category Found</td>
+                    <td colspan="6" class="text-center font-weight-bold">No Category Found</td>
                 </tr>
             @endforelse
         </x-table>
