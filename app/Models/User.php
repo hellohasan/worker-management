@@ -5,6 +5,7 @@ namespace App\Models;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
@@ -54,5 +55,15 @@ class User extends Authenticatable
         }
 
         return asset('storage/users/avatar.png');
+    }
+
+    /**
+     * Get the company associated with the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function company(): HasOne
+    {
+        return $this->hasOne(Company::class, 'user_id', 'id');
     }
 }

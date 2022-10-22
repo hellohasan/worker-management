@@ -1,11 +1,13 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HireController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkerController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CategoryController;
@@ -40,6 +42,17 @@ Route::group(['middleware' => ['auth']], function () {
     Route::group(['prefix' => 'backend'], function () {
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('workers', WorkerController::class);
+        Route::resource('companies', CompanyController::class);
+    });
+
+    Route::group(['prefix' => 'company'], function () {
+        Route::get('new-hire', [HireController::class, 'newHire'])->name('hire.new');
+        Route::get('hire-history', [HireController::class, 'history'])->name('hire.history');
+        Route::post('hire-cart', [HireController::class, 'storeHire'])->name('hire-cart');
+        Route::get('worker-cart', [HireController::class, 'cart'])->name('worker-cart');
+        Route::get('hire-remove/{id}', [HireController::class, 'remove'])->name('hire-remove');
+        Route::post('hire-confirm', [HireController::class, 'confirm'])->name('hire-confirm');
+        Route::post('hire-destroy', [HireController::class, 'destroy'])->name('hire-destroy');
     });
 
     Route::resource('users', UserController::class);

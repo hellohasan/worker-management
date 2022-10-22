@@ -33,6 +33,15 @@ class Worker extends Model
     ];
 
     /**
+     * @var array
+     */
+    /* protected $casts = [
+    'dob'         => 'date',
+    'passport_ex' => 'date',
+    'visa_ex'     => 'date',
+    ]; */
+
+    /**
      * Get the user that owns the Worker
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

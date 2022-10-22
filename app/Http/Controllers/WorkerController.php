@@ -19,6 +19,18 @@ use Yajra\DataTables\Facades\DataTables;
 
 class WorkerController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('permission:workers', ['only' => ['index']]);
+        $this->middleware('permission:workers-create', ['only' => ['create']]);
+        $this->middleware('permission:workers-store', ['only' => ['store']]);
+        $this->middleware('permission:workers-show', ['only' => ['show']]);
+        $this->middleware('permission:workers-edit', ['only' => ['edit']]);
+        $this->middleware('permission:workers-update', ['only' => ['update']]);
+        $this->middleware('permission:workers-delete', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
