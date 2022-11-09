@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Status;
 use App\Models\Worker;
 use App\Models\Category;
+use App\Models\OrderWorker;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Helpers\CustomHelper;
@@ -281,6 +282,7 @@ class WorkerController extends Controller
         if ($worker->user->getRawOriginal('avatar') != 'avatar.png') {
             File::delete("storage/users/{$worker->user->getRawOriginal('avatar')}");
         }
+        OrderWorker::whereWorkerId($worker->id)->delete();
         $worker->delete();
         return to_route('workers.index')->withToastSuccess('Worker Deleted Successfully.');
     }

@@ -10,7 +10,6 @@ use App\Models\OrderWorker;
 use Illuminate\Support\Str;
 use App\Models\BasicSetting;
 use Illuminate\Http\Request;
-use App\Jobs\SendCompanyEmailJob;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Yajra\DataTables\Facades\DataTables;
@@ -130,7 +129,7 @@ class HireController extends Controller
             $basic = BasicSetting::first();
             $queries = Order::query();
             $user = Auth::user();
-            if ($user->hasRole('company')) {
+            if ($user->hasRole('Company')) {
                 $queries->whereCompanyId($user->company->id);
             }
             $queries->join('order_workers', 'orders.id', '=', 'order_workers.order_id')
@@ -179,7 +178,9 @@ class HireController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $route = route("hire-details", $row->custom);
-                    return '<a href="' . $route . '" class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> View</a>';
+                    $btn = '<a href="' . $route . '" class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> View</a>';
+                    $btn .= ' <button class="btn btn-danger btn-xs bold uppercase delete_button" data-toggle="modal" data-target="#DeleteModal" data-id="' . $row->id . '" type="button"><i class="fa fa-trash"></i> Delete</button>';
+                    return $btn;
                 })
                 ->rawColumns(['company_info', 'company_contact', 'payment_at', 'status', 'action'])
                 ->escapeColumns()
@@ -195,6 +196,24 @@ class HireController extends Controller
     {
         Cart::destroy();
         return redirect()->route('hire.new')->withToastSuccess('Bucket destroyed successfully.');
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function orderDestroy(Request $request)
+    {
+        $order = Order::with('workers')->findOrFail($request->input('id'));
+        foreach ($order->workers as $order) {
+            $wk = $order->worker;
+            if ($wk) {
+                $wk->status_id = 1;
+                $wk->save();
+            }
+        }
+        $order->workers()->delete();
+        $order->delete();
+        return redirect()->route('hire.new')->withToastSuccess('Order destroyed successfully.');
     }
 
     /**
@@ -281,19 +300,40 @@ class HireController extends Controller
         $status = $request->input('status');
         $payment = $request->input('payment');
 
-        $order = Order::with('workers.worker')->findOrFail($request->input('order_id'));
+        $order = Order::with(['workers.worker', 'company.user'])->findOrFail($request->input('order_id'));
         $workers = $order->workers;
+
+        $collections = collect([]);
+
         if ($status == 1) {
+            $companyNotification = [
+                'phone'   => $order->company->user->phone,
+                'message' => $order->custom . ' Order Approved.',
+            ];
+            $collections->push($companyNotification);
             foreach ($workers as $worker) {
                 $wk = $worker->worker;
                 $wk->status_id = 3;
                 $wk->save();
+                $collections->push([
+                    'phone'   => $wk->user->phone,
+                    'message' => "Your are booked now.",
+                ]);
             }
         } else {
+            $companyNotification = [
+                'phone'   => $order->company->user->phone,
+                'message' => $order->custom . ' Order Rejected.',
+            ];
+            $collections->push($companyNotification);
             foreach ($workers as $worker) {
                 $wk = $worker->worker;
                 $wk->status_id = 1;
                 $wk->save();
+                $collections->push([
+                    'phone'   => $wk->user->phone,
+                    'message' => "Your current status available now.",
+                ]);
             }
         }
 
@@ -302,8 +342,6 @@ class HireController extends Controller
         }
         $order->status = $status;
         $order->save();
-
-        SendCompanyEmailJob::dispatch($order)->delay(now()->addSeconds(2));
 
         return redirect()->back()->withToastSuccess('Order Status Updated');
     }

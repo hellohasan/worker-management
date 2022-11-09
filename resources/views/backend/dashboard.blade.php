@@ -2,7 +2,7 @@
 
 @section('content')
     <x-basic-layout :title="$page_title" type="primary">
-        <div class="row">
+        <div class="row pb-5">
             <div class="col-md-6">
                 <div class="chart-container" style="position: relative; height:200px;">
                     <h5 class="text-center">Country Wise Employee</h5>
@@ -31,7 +31,7 @@
 
         <div class="row">
             <div class="col-md-12">
-                <h3 class="text-center">Latest Workers</h3>
+                <h3 class="text-center">Latest Available Workers</h3>
             </div>
             @foreach ($workers as $key => $worker)
                 <div class="col-md-2">

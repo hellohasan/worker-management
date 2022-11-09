@@ -106,34 +106,68 @@
                 </table>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-12">
-                <form action="{{ route('hire.updated') }}" method="post">
-                    @csrf
-                    <input type="hidden" name="order_id" value="{{ $order->id }}">
-                    <div class="form-body">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="payment">Payment Status</label>
-                                <select name="payment" id="payment" class="form-control">
-                                    <option value="0" {{ $order->payment_at == null ? 'selected' : '' }}>Unpaid</option>
-                                    <option value="1" {{ $order->payment_at != null ? 'selected' : '' }}>Paid</option>
-                                </select>
+        @role('Super Admin|Admin')
+            <div class="row">
+                <div class="col-md-12">
+                    <form action="{{ route('hire.updated') }}" method="post">
+                        @csrf
+                        <input type="hidden" name="order_id" value="{{ $order->id }}">
+                        <div class="form-body">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="payment">Payment Status</label>
+                                    <select name="payment" id="payment" class="form-control">
+                                        <option value="0" {{ $order->payment_at == null ? 'selected' : '' }}>Unpaid</option>
+                                        <option value="1" {{ $order->payment_at != null ? 'selected' : '' }}>Paid</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="status">Order Status</label>
+                                    <select name="status" id="status" class="form-control" required>
+                                        <option value="0" {{ $order->status == 0 ? 'selected' : '' }}>Pending</option>
+                                        <option value="1" {{ $order->status == 1 ? 'selected' : '' }}>Approve</option>
+                                        <option value="2" {{ $order->status == 2 ? 'selected' : '' }}>Reject</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="status">Order Status</label>
-                                <select name="status" id="status" class="form-control" required>
-                                    <option value="0" {{ $order->status == 0 ? 'selected' : '' }}>Pending</option>
-                                    <option value="1" {{ $order->status == 1 ? 'selected' : '' }}>Approve</option>
-                                    <option value="2" {{ $order->status == 2 ? 'selected' : '' }}>Reject</option>
-                                </select>
-                            </div>
+                            <button type="submit" class="btn btn-primary btn-block btn-lg text-uppercase font-weight-bold">Update Order</button>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block btn-lg text-uppercase font-weight-bold">Update Order</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
+        @else
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Payment Status:
+                                @if ($order->payment_at)
+                                    <button class="btn btn-success btn-sm">Paid</button>
+                                @else
+                                    <button class="btn btn-danger btn-sm">Unpaid</button>
+                                @endif
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Order Status:
+                                @if ($order->status == 1)
+                                    <button class="btn btn-success btn-sm">Approved</button>
+                                @elseif($order->status == 2)
+                                    <button class="btn btn-danger btn-sm">Rejected</button>
+                                @else
+                                    <button class="btn btn-warning btn-sm">Pending</button>
+                                @endif
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endrole
+
         <x-delete-modal route="hire-employee-destroy"></x-delete-modal>
     </x-button-layout>
 @endsection

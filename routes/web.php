@@ -19,8 +19,8 @@ Route::get('/', function () {
 });
 
 Auth::routes([
-    'register' => 'false',
-    'verify'   => 'false',
+    'register' => false,
+    'verify'   => false,
 ]);
 
 Route::group(['middleware' => ['auth']], function () {
@@ -57,6 +57,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('hire-destroy', [HireController::class, 'destroy'])->name('hire-destroy');
         Route::delete('hire-worker-destroy/{id}', [HireController::class, 'workerDestroy'])->name('hire-employee-destroy');
         Route::post('hire-updated', [HireController::class, 'update'])->name('hire.updated')->middleware('permission:hire-update');
+        Route::delete('order-destroy/{id}', [HireController::class, 'orderDestroy'])->name('order-destroy');
 
         Route::get('employee-details/{custom}', [HireController::class, 'employeeDetails'])->name('employee-details');
 

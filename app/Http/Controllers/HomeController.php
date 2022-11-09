@@ -30,7 +30,7 @@ class HomeController extends Controller
         $data['workersChart'] = (new CountryWorkers)->generate();
         $data['statusChart'] = (new WorkerStatus)->generate();
         $data['last30Days'] = (new Last30DaysOrder)->generate();
-        $data['workers'] = Worker::with('user')->take(12)->get();
+        $data['workers'] = Worker::with('user')->whereStatusId(1)->take(12)->get();
         return view('backend.dashboard', $data);
     }
 }
