@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Worker;
+use App\Http\Controllers\ChartJs\WorkerStatus;
+use App\Http\Controllers\ChartJs\CountryWorkers;
+use App\Http\Controllers\ChartJs\Last30DaysOrder;
+
 class HomeController extends Controller
 {
     /**
@@ -22,7 +27,10 @@ class HomeController extends Controller
     public function index()
     {
         $data['page_title'] = 'Dashboard';
-
-        return view('home', $data);
+        $data['workersChart'] = (new CountryWorkers)->generate();
+        $data['statusChart'] = (new WorkerStatus)->generate();
+        $data['last30Days'] = (new Last30DaysOrder)->generate();
+        $data['workers'] = Worker::with('user')->take(12)->get();
+        return view('backend.dashboard', $data);
     }
 }

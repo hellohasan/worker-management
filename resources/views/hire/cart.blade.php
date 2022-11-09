@@ -43,7 +43,7 @@
                     <button class="btn btn-danger btn-block btn-lg" data-toggle="modal" data-target="#CancelModal"><i class="fas fa-trash"></i> Destroy this Bucket</button>
                 </div>
                 <div class="col-md-6">
-                    <button class="btn btn-success btn-block btn-lg" data-toggle="modal" data-target="#ConfirmModal"><i class="fas fa-paper-plane"></i> Place the Order</button>
+                    <button class="btn btn-success btn-block btn-lg" data-toggle="modal" data-target="#ConfirmModal"><i class="fas fa-paper-plane"></i> Checkout Now</button>
                 </div>
             </div>
         @endif

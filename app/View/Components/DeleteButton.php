@@ -6,6 +6,12 @@ use Illuminate\View\Component;
 
 class DeleteButton extends Component
 {
+    public int $id;
+    public string $text;
+    public string $modal;
+    public string $classBtn;
+    public string $icon;
+    public string $btnClass;
 
     /**
      * Create a new component instance.
@@ -13,11 +19,20 @@ class DeleteButton extends Component
      * @return void
      */
     public function __construct(
-        public int $id,
-        public $text = 'Delete',
-        public $modal = 'DeleteModal',
-        public $classBtn = 'delete_button',
-    ){}
+        int $id,
+        string $text = 'Delete',
+        string $modal = 'DeleteModal',
+        string $classBtn = 'delete_button',
+        string $icon = 'fas fa-trash',
+        string $btnClass = 'btn-danger',
+    ){
+        $this->id = $id;
+        $this->text = $text;
+        $this->modal = $modal;
+        $this->classBtn = $classBtn;
+        $this->icon = $icon;
+        $this->btnClass = $btnClass;
+    }
 
     /**
      * Get the view / contents that represent the component.

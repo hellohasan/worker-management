@@ -28,6 +28,13 @@ class Order extends Model
     ];
 
     /**
+     * @var array
+     */
+    protected $casts = [
+        'payment_at' => 'datetime',
+    ];
+
+    /**
      * Get the company that owns the Order
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

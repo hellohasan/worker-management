@@ -3,14 +3,26 @@
 namespace App\Http\Controllers;
 
 use Auth;
+use Carbon\Carbon;
 use App\Models\Order;
 use App\Models\Worker;
+use App\Models\OrderWorker;
 use Illuminate\Support\Str;
+use App\Models\BasicSetting;
 use Illuminate\Http\Request;
+use App\Jobs\SendCompanyEmailJob;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Yajra\DataTables\Facades\DataTables;
 use Gloudemans\Shoppingcart\Facades\Cart;
 
 class HireController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('role:Super Admin|Admin|Company');
+    }
+
     public function newHire()
     {
         $data['page_title'] = 'Worker Hire';
@@ -18,7 +30,7 @@ class HireController extends Controller
             'user:id,name,email,phone,avatar',
             'category:id,name',
             'status:id,name',
-        ])->whereStatusId(1)->paginate(15);
+        ])->whereStatusId(1)->paginate(18);
         return view('hire.new', $data);
     }
 
@@ -92,6 +104,9 @@ class HireController extends Controller
             $or['total'] = Cart::total();
             $order = Order::create($or);
             foreach ($carts as $cart) {
+                $worker = Worker::find($cart->id);
+                $worker->status_id = 2;
+                $worker->save();
                 $order->workers()->create([
                     'worker_id' => $cart->id,
                 ]);
@@ -104,14 +119,72 @@ class HireController extends Controller
         }
     }
 
-    public function history()
+    /**
+     * @param Request $request
+     */
+    public function history(Request $request)
     {
         $data['page_title'] = 'Order List';
-        $data['orders'] = Order::with([
-            'company.user:id,name,email,phone',
-            'workers',
-        ])->withCount('workers')
-            ->orderByDesc('id')->paginate(15);
+
+        if ($request->ajax()) {
+            $basic = BasicSetting::first();
+            $queries = Order::query();
+            $user = Auth::user();
+            if ($user->hasRole('company')) {
+                $queries->whereCompanyId($user->company->id);
+            }
+            $queries->join('order_workers', 'orders.id', '=', 'order_workers.order_id')
+                ->join('companies', 'companies.id', '=', 'orders.company_id')
+                ->join('users', 'users.id', '=', 'companies.user_id')
+                ->select([
+                    'orders.*', 'orders.id as oid',
+                    'companies.id as cid', 'companies.owner_name', 'companies.address',
+                    'users.id as uid', 'users.name', 'users.phone', 'users.email',
+                    DB::raw("COUNT(order_workers.order_id) as total_worker"),
+                ])
+                ->groupBy('orders.id');
+
+            return DataTables::of($queries)
+                ->addIndexColumn()
+                ->addColumn('company_info', function ($row) {
+                    return $row->name . '<br>' . $row->owner_name;
+                })
+                ->addColumn('company_contact', function ($row) {
+                    return $row->phone . '<br>' . $row->email . '<br>' . $row->address;
+                })
+                ->editColumn('total_worker', function ($row) {
+                    return $row->total_worker . '\'s';
+                })
+                ->editColumn('total', function ($row) use ($basic) {
+                    return $basic->symbol . '' . $row->total;
+                })
+                ->editColumn('payment_at', function ($row) {
+                    if ($row->payment_at) {
+                        $txt = '<span class="badge badge-success">Paid</span>' . '<br>';
+                        $txt .= Carbon::parse($row->payment_at)->toDateTimeString();
+                    } else {
+                        $txt = '<span class="badge badge-warning">Unpaid</span>';
+                    }
+                    return $txt;
+                })
+                ->editColumn('status', function ($row) {
+                    if ($row->status == 1) {
+                        $txt = '<span class="badge badge-success">Approved</span>';
+                    } elseif ($row->status == 2) {
+                        $txt = '<span class="badge badge-danger">Reject</span>';
+                    } else {
+                        $txt = '<span class="badge badge-warning">Pending</span>';
+                    }
+                    return $txt;
+                })
+                ->addColumn('action', function ($row) {
+                    $route = route("hire-details", $row->custom);
+                    return '<a href="' . $route . '" class="btn btn-primary btn-xs"><i class="fas fa-eye"></i> View</a>';
+                })
+                ->rawColumns(['company_info', 'company_contact', 'payment_at', 'status', 'action'])
+                ->escapeColumns()
+                ->make(true);
+        }
         return view('hire.history', $data);
     }
 
@@ -122,5 +195,116 @@ class HireController extends Controller
     {
         Cart::destroy();
         return redirect()->route('hire.new')->withToastSuccess('Bucket destroyed successfully.');
+    }
+
+    /**
+     * @param $custom
+     */
+    public function details($custom)
+    {
+        $order = Order::with([
+            'workers.worker.user',
+            'workers.worker.category',
+            'workers.worker.status',
+        ])->whereCustom($custom)->firstOrFail();
+        $data['page_title'] = 'Order Details #' . $custom;
+        $data['order'] = $order;
+        return view('hire.details', $data);
+    }
+
+    /**
+     * @param $details
+     */
+    public function employeeDetails($custom)
+    {
+        $worker = Worker::with([
+            'user:id,name,email,phone,avatar',
+            'category:id,name',
+            'status:id,name',
+            'orders.order',
+            'orders.order.company.user',
+        ])->whereCustom($custom)->firstOrFail();
+
+        $data['page_title'] = 'Worker Details';
+        $data['worker'] = $worker;
+        $data['age'] = Carbon::parse($worker->dob)->diff(Carbon::now())->format('%y Years %m Month %d Days');
+        if (Carbon::parse($worker->passport_ex)->isPast()) {
+            $data['passport_expire'] = 'Expired';
+        } else {
+            $data['passport_expire'] = Carbon::parse($worker->passport_ex)->diff(Carbon::now())->format('%y Years %m Month %d Days');
+        }
+        if (Carbon::parse($worker->visa_ex)->isPast()) {
+            $data['visa_expire'] = 'Expired';
+        } else {
+            $data['visa_expire'] = Carbon::parse($worker->visa_ex)->diff(Carbon::now())->format('%y Years %m Month %d Days');
+        }
+        return view('hire.employee-details', $data);
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function workerDestroy(Request $request)
+    {
+        $log = OrderWorker::with(['worker'])->findOrFail($request->id);
+        $worker = $log->worker;
+        $worker->status_id = 1;
+        $worker->save();
+        $orderId = $log->order_id;
+        $log->delete();
+
+        $order = Order::with('workers.worker')->findOrFail($orderId);
+        $total = 0;
+        foreach ($order->workers as $worker) {
+            if ($worker->worker) {
+                $total += $worker->worker->charge;
+            }
+        }
+
+        $order->total = $total;
+        $order->save();
+
+        return redirect()->back()->withToastSuccess('Worker Deleted Successfully');
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function update(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'payment'  => 'required',
+            'status'   => 'required',
+        ]);
+
+        $status = $request->input('status');
+        $payment = $request->input('payment');
+
+        $order = Order::with('workers.worker')->findOrFail($request->input('order_id'));
+        $workers = $order->workers;
+        if ($status == 1) {
+            foreach ($workers as $worker) {
+                $wk = $worker->worker;
+                $wk->status_id = 3;
+                $wk->save();
+            }
+        } else {
+            foreach ($workers as $worker) {
+                $wk = $worker->worker;
+                $wk->status_id = 1;
+                $wk->save();
+            }
+        }
+
+        if ($payment) {
+            $order->payment_at = now();
+        }
+        $order->status = $status;
+        $order->save();
+
+        SendCompanyEmailJob::dispatch($order)->delay(now()->addSeconds(2));
+
+        return redirect()->back()->withToastSuccess('Order Status Updated');
     }
 }

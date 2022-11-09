@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
     <title>{{ isset($page_title) ? $page_title . ' - ' : '' }} {{ config('app.name') }}</title>
-    <link rel="icon" href="https://investpro.wowtheme7.com/public/images/logo/favicon.png" type="image/gif" sizes="16x16">
+    <link rel="icon" href="{{ asset('img/favicon.png') }}" type="image/gif" sizes="16x16">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link href="{{ mix('css/backend.css') }}" rel="stylesheet">
     @stack('styles')

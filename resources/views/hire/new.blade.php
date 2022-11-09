@@ -13,56 +13,49 @@
                 </div>
                 <!-- /.card-header -->
                 <div class="card-body">
-                    <table id="myTable" class="table table-bordered table-striped display nowrap" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th>SL</th>
-                                <th>Category</th>
-                                <th>Image</th>
-                                <th>Name</th>
-                                <th>Country</th>
-                                <th>Age</th>
-                                <th>Passport</th>
-                                <th>Visa</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($workers as $key => $worker)
-                                <tr>
-                                    <td>{{ $key + $workers->firstItem() }}</td>
-                                    <td>{{ $worker->category->name }}</td>
-                                    <td><img src="{{ $worker->user->avatar }}" alt=""></td>
-                                    <td>
-                                        {{ $worker->user->name }} <br>
-                                        {{ $worker->user->email }} <br>
-                                        {{ $worker->user->phone }} <br>
-                                    </td>
-                                    <td>{{ $worker->country }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($worker->dob)->diff(\Carbon\Carbon::now())->format('%y Years %m Month %d Days') }}</td>
-                                    <td>
-                                        @if (\Carbon\Carbon::parse($worker->passport_ex)->isPast())
-                                            Expired
-                                        @else
-                                            {{ \Carbon\Carbon::parse($worker->passport_ex)->diff(\Carbon\Carbon::now())->format('%y Years %m Month %d Days') }}
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if (\Carbon\Carbon::parse($worker->visa_ex)->isPast())
-                                            Expired
-                                        @else
-                                            {{ \Carbon\Carbon::parse($worker->visa_ex)->diff(\Carbon\Carbon::now())->format('%y Years %m Month %d Days') }}
-                                        @endif
-                                    </td>
-                                    <td>{{ $worker->status->name }}</td>
-                                    <td>
-                                        <button class="btn btn-success cart_button" data-toggle="modal" data-target="#CartModal" data-id="{{ $worker->id }}" type="button"><i class="fa fa-shopping-bag"></i> Add to Bucket</button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                    <div class="row">
+                        @foreach ($workers as $key => $worker)
+                            <div class="col-md-2">
+                                <div class="card">
+                                    <img class="card-img-top" src="{{ $worker->user->avatar }}" alt="Card image cap">
+                                    <div class="card-header d-flex justify-content-between bd-highlight">
+                                        <h5 class="card-title">{{ $worker->user->name }}</h5>
+                                    </div>
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <div>Country:</div>
+                                            <div>{{ $worker->country }}</div>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <div>Age:</div>
+                                            <div>{{ $worker->getShortAge() }}</div>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <div>Passport:</div>
+                                            <div>{{ $worker->getPassportStatus() }}</div>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <div>Visa:</div>
+                                            <div>{{ $worker->getVisaStatus() }}</div>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <div>Charge:</div>
+                                            <div>{{ $basic->symbol }}{{ $worker->charge }}</div>
+                                        </li>
+                                    </ul>
+                                    <div class="card-footer">
+                                        <div class="btn-group btn-group-sm d-flex justify-content-center" role="group" aria-label="Basic example">
+                                            <a href="{{ route('employee-details', $worker->custom) }}" class="btn btn-primary btn-mini" title="View"><i class="fa fa-eye"></i> Details</a>
+                                            <button class="btn btn-success cart_button" data-toggle="modal" data-target="#CartModal" data-id="{{ $worker->id }}" type="button"><i class="fa fa-shopping-bag"></i> Add to Bucket</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        <div class="col-md-12">
+                            {!! $workers->links('pagination::bootstrap-4') !!}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

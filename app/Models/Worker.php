@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -21,6 +23,7 @@ class Worker extends Model
     protected $fillable = [
         'user_id',
         'category_id',
+        'custom',
         'country',
         'dob',
         'address',
@@ -31,15 +34,6 @@ class Worker extends Model
         'charge',
         'status_id',
     ];
-
-    /**
-     * @var array
-     */
-    /* protected $casts = [
-    'dob'         => 'date',
-    'passport_ex' => 'date',
-    'visa_ex'     => 'date',
-    ]; */
 
     /**
      * Get the user that owns the Worker
@@ -69,6 +63,55 @@ class Worker extends Model
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class, 'status_id');
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPassportStatus()
+    {
+        if (Carbon::parse($this->passport_ex)->isPast()) {
+            $expire = 'Expired';
+        } else {
+            $expire = Carbon::parse($this->passport_ex)->diff(Carbon::now())->format('%yy %mm %dd');
+        }
+        return $expire;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getVisaStatus()
+    {
+        if (Carbon::parse($this->visa_ex)->isPast()) {
+            $expire = 'Expired';
+        } else {
+            $expire = Carbon::parse($this->visa_ex)->diff(Carbon::now())->format('%yy %mm %dd');
+        }
+        return $expire;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAge()
+    {
+        return Carbon::parse($this->dob)->diff(Carbon::now())->format('%y Years %m Month %d Days');
+    }
+
+    public function getShortAge()
+    {
+        return Carbon::parse($this->dob)->diff(Carbon::now())->format('%yy %mm %dd');
+    }
+
+    /**
+     * Get all of the orders for the Worker
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(OrderWorker::class, 'worker_id', 'id');
     }
 
 }

@@ -9,17 +9,19 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\Settings\BasicSettingController;
 use App\Http\Controllers\Settings\ServerInformationController;
 
-Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+Route::get('/', function () {
+    return to_route('login');
+});
 
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Auth::routes([
+    'register' => 'false',
+    'verify'   => 'false',
+]);
 
 Route::group(['middleware' => ['auth']], function () {
     Route::get('dashboard', [HomeController::class, 'index'])->name('dashboard');
@@ -53,6 +55,13 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('hire-remove/{id}', [HireController::class, 'remove'])->name('hire-remove');
         Route::post('hire-confirm', [HireController::class, 'confirm'])->name('hire-confirm');
         Route::post('hire-destroy', [HireController::class, 'destroy'])->name('hire-destroy');
+        Route::delete('hire-worker-destroy/{id}', [HireController::class, 'workerDestroy'])->name('hire-employee-destroy');
+        Route::post('hire-updated', [HireController::class, 'update'])->name('hire.updated')->middleware('permission:hire-update');
+
+        Route::get('employee-details/{custom}', [HireController::class, 'employeeDetails'])->name('employee-details');
+
+        Route::get('hire-details/{custom}', [HireController::class, 'details'])->name('hire-details');
+
     });
 
     Route::resource('users', UserController::class);

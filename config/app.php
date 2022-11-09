@@ -185,7 +185,7 @@ return [
         /*
          * Package Service Providers...
          */
-
+        vitopedro\chartjs\ChartjsServiceProvider::class,
         /*
          * Application Service Providers...
          */

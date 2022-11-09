@@ -159,7 +159,7 @@ class WorkerController extends Controller
         if ($request->hasFile('photo')) {
             $photo = $request->file('photo');
             $filename = time() . '.' . $photo->getClientOriginalExtension();
-            Image::make($photo)->resize(100, 100)->save(public_path("storage/users/$filename"));
+            Image::make($photo)->resize(200, 200)->save(public_path("storage/users/$filename"));
             $in['avatar'] = $filename;
         }
 
@@ -169,6 +169,7 @@ class WorkerController extends Controller
 
         $wo = $request->except(['_method', '_token', 'name', 'email', 'phone', 'photo']);
         $wo['user_id'] = $user->id;
+        $wo['custom'] = Str::upper(Str::random(12));
         Worker::create($wo);
 
         return redirect()->back()->withToastSuccess('Worker Created Successfully.');
@@ -249,11 +250,10 @@ class WorkerController extends Controller
         $in['name'] = $request->input('name');
         $in['email'] = $request->input('email');
         $in['phone'] = $request->input('phone');
-
         if ($request->hasFile('photo')) {
             $photo = $request->file('photo');
             $filename = time() . '.' . $photo->getClientOriginalExtension();
-            Image::make($photo)->resize(100, 100)->save(public_path("storage/users/$filename"));
+            Image::make($photo)->resize(200, 200)->save(public_path("storage/users/$filename"));
             $in['avatar'] = $filename;
             if ($worker->user->getRawOriginal('avatar') != 'avatar.png') {
                 File::delete("storage/users/{$worker->user->getRawOriginal('avatar')}");
@@ -263,6 +263,7 @@ class WorkerController extends Controller
         $worker->user()->update($in);
 
         $wo = $request->except(['_method', '_token', 'name', 'email', 'phone', 'photo']);
+        $wo['custom'] = Str::upper(Str::random(12));
         $worker->update($wo);
 
         return redirect()->back()->withToastSuccess('Worker Updated Successfully.');
